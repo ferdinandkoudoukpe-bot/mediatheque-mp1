@@ -745,7 +745,7 @@ function afficherAidesErreur(array $categories): string
             <form class="recherche-rapide" action="catalogue.php" method="get" role="search" aria-label="Recherche rapide">
                 <label class="champ__label" for="q-aide">Rechercher un titre ou un auteur</label>
                 <div class="recherche-rapide__ligne">
-                    <input class="champ__saisie" type="search" id="q-aide" name="q" maxlength="{$max}" placeholder="Par exemple : Asimov">
+                    <input class="champ__saisie" type="search" id="q-aide" name="q" maxlength="{$max}" placeholder="Par exemple : PHP, Python">
                     <button class="bouton bouton--contour" type="submit">Rechercher</button>
                 </div>
             </form>

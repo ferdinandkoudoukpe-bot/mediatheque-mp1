@@ -4,17 +4,19 @@ TP1 – UE IT231 Développement Web I – Année académique 2026-2027
 
 ## Description
 
-> Variante graphique **B – Institutionnel aux couleurs d'IPNET** : en-tête et bandeaux bleu marine (#0d2137), boutons et liens bleu IPNET (#1e5fa0), accent jaune doré (#ffb81c), palette reprise du site officiel d'IPNET, bloc de recherche par rayon sur l'accueil. Le catalogue est présenté sous forme de tableau HTML (fonction complémentaire `afficherLigneLivre()`), la page d'accueil conserve les cartes générées par `afficherLivre()`.
-
 Ce projet est un mini-site en PHP qui présente le catalogue de livres de la
 Médiathèque IPNET. Les données ne viennent pas d'une base de données : les
 livres sont stockés dans un tableau associatif PHP (`data/livres.php`) et les
-pages HTML sont générées dynamiquement à partir de ce tableau.
+pages HTML sont générées dynamiquement à partir de ce tableau. Pour la
+présentation, j'ai repris les couleurs du site officiel d'IPNET (bleu marine,
+bleu IPNET et jaune doré).
 
 Le site comporte quatre pages :
 
-- **Accueil** (`index.php`) : message de bienvenue, accès au catalogue et chiffres du fonds ;
-- **Catalogue** (`catalogue.php`) : liste des livres sous forme de cartes, avec filtre par catégorie ;
+- **Accueil** (`index.php`) : message de bienvenue, recherche rapide, chiffres du fonds,
+  rayons et cartes des parutions les plus récentes ;
+- **Catalogue** (`catalogue.php`) : liste des livres dans un tableau HTML, avec recherche,
+  filtre par catégorie, filtre de disponibilité et tri ;
 - **Détail** (`detail.php?id=3`) : fiche complète d'un livre ;
 - **À propos** (`apropos.php`) : présentation de la médiathèque et date du jour.
 
@@ -99,22 +101,25 @@ sont fictifs, dans le cadre du TP.
 
 ### Page d'accueil
 - Message de bienvenue et présentation de la médiathèque.
-- Lien vers le catalogue.
-- Nombre total de livres et nombre de livres disponibles, calculés en PHP
-  à partir du tableau (`count()` et `compterLivresDisponibles()`).
-- Accès direct aux rayons (catégories) et aperçu de quelques ouvrages.
+- Formulaire de recherche (titre ou auteur + rayon) qui envoie vers le catalogue,
+  et lien vers le catalogue complet.
+- Nombre total de livres, de livres disponibles et empruntés, et nombre de rayons,
+  calculés en PHP à partir du tableau (`count()` et `compterLivresDisponibles()`).
+- Accès direct aux six rayons, avec le nombre de titres de chacun.
+- Les quatre parutions les plus récentes, affichées en cartes avec `afficherLivre()`.
 
 ### Catalogue
-- Affichage de tous les livres sous forme de cartes : titre, auteur, année,
-  catégorie, prix et disponibilité.
-- Affichage du nombre de livres affichés.
+- Affichage des livres dans un tableau HTML (une ligne par livre, générée par
+  `afficherLigneLivre()`) : référence, titre, auteur, catégorie, année, prix,
+  disponibilité et lien vers la fiche.
+- Affichage du nombre de livres affichés sur le nombre total du catalogue.
 
 ### Filtrage par catégorie
-- Filtre par liens (une pastille par catégorie) et par menu déroulant.
+- Filtre par liens (une pastille par catégorie avec son nombre de livres) et par menu déroulant.
 - Paramètre passé dans l'URL : `catalogue.php?categorie=developpement-web`.
 - Vérification du paramètre : si la catégorie n'existe pas
-  (ex. `catalogue.php?categorie=bd`), un message d'erreur est affiché.
-- Lien « Revenir au catalogue complet » / « Tous les ouvrages ».
+  (ex. `catalogue.php?categorie=bd`), un message d'erreur est affiché avec le code HTTP 404.
+- Pastille « Tous les rayons » et lien « Revenir au catalogue complet ».
 
 Catégories disponibles : `developpement-web`, `programmation`, `bases-de-donnees`,
 `reseaux-securite`, `genie-logiciel`, `intelligence-artificielle`.
@@ -122,7 +127,8 @@ Catégories disponibles : `developpement-web`, `programmation`, `bases-de-donnee
 ### Recherche, tri et filtres (ergonomie du catalogue)
 - Champ de recherche par titre ou auteur (`catalogue.php?q=python`), insensible
   à la casse et aux accents, combinable avec le rayon.
-- Tri par titre, auteur, année ou prix (`?tri=prix-asc`), contrôlé par une
+- Tri par titre, auteur, année (croissante ou décroissante) ou prix (croissant ou
+  décroissant), par exemple `?tri=prix-asc`. Les valeurs sont contrôlées par une
   liste blanche : une valeur inconnue est ignorée avec un message.
 - Case « Disponibles uniquement » (`?dispo=1`).
 - Les paramètres se combinent : `catalogue.php?q=php&categorie=developpement-web&tri=annee-desc&dispo=1`.
@@ -132,11 +138,6 @@ Catégories disponibles : `developpement-web`, `programmation`, `bases-de-donnee
   tous les rayons, inclure les ouvrages empruntés) et un bouton de réinitialisation.
 - Toutes les valeurs saisies sont validées (type, longueur limitée à 60 caractères)
   et échappées avec `htmlspecialchars()` avant affichage.
-
-### Fiche ouvrage
-- Fil d'Ariane, lien « Retour aux résultats » qui conserve la recherche en cours.
-- Navigation vers l'ouvrage précédent et suivant dans la liste de résultats.
-- Disponibilité expliquée : étapes pour emprunter, ou délai de retour et réservation.
 
 ### Accessibilité et confort
 - Lien d'évitement « Aller au contenu », repères sémantiques (`header`, `nav`,
@@ -149,41 +150,59 @@ Catégories disponibles : `developpement-web`, `programmation`, `bases-de-donnee
 - Pages d'erreur avec actions proposées (recherche rapide, rayons, retour au catalogue).
 - Titre d'onglet et méta-description propres à chaque page, favicon SVG,
   lien « Haut de page ».
+- Horaires dans le bandeau du haut, avec l'indication « Ouvert actuellement » ou
+  « Fermé actuellement » calculée en PHP (`estOuverte()`).
 - Le site fonctionne entièrement sans JavaScript.
 
 ### Page détail
-- Fiche complète d'un livre via `detail.php?id=3`
-  (les paramètres de recherche peuvent suivre : `detail.php?id=3&q=javascript`).
+- Fiche complète d'un livre via `detail.php?id=3` : titre, auteur, éditeur, année
+  d'édition, catégorie, prix, disponibilité, référence et résumé.
+- Les paramètres de recherche peuvent suivre (`detail.php?id=3&q=javascript`) :
+  le lien « Retour aux résultats » ramène alors à la même recherche.
+- Navigation vers l'ouvrage précédent et suivant dans la liste de résultats.
+- Disponibilité expliquée : étapes pour emprunter, ou délai de retour et réservation.
 - Vérification de l'identifiant avec `filter_var()` (entier strictement positif).
 - Message d'erreur propre si l'identifiant est absent (`detail.php`),
-  invalide (`detail.php?id=abc`) ou inexistant (`detail.php?id=999`).
-- Fil d'Ariane, lien de retour au catalogue et suggestions du même rayon.
+  invalide (`detail.php?id=abc`) ou inexistant (`detail.php?id=999`), avec le code HTTP 404.
+- Fil d'Ariane et suggestions d'autres ouvrages du même rayon.
 
 ### Page À propos
 - Présentation statique de la médiathèque (mission, collections, conditions d'emprunt, horaires).
 - Date du jour affichée en français par la fonction `dateDuJourEnFrancais()`.
 
 ### Fonctions (`includes/fonctions.php`)
-- `afficherLivre(array $livre): string` – génère le HTML d'une carte livre ;
+- `afficherLivre(array $livre): string` – génère le HTML d'une carte livre
+  (accueil et suggestions de la page détail) ;
 - `filtrerParCategorie(array $livres, string $categorie): array` – filtre les livres ;
 - `trouverLivreParId(array $livres, int $id): ?array` – recherche un livre par son identifiant ;
 - `compterLivresDisponibles(array $livres): int` – compte les livres disponibles ;
-- fonctions complémentaires : `echapper()`, `libelleCategorie()`, `compterParCategorie()`,
+- fonctions complémentaires, entre autres : `afficherLigneLivre()` (ligne du tableau
+  du catalogue), `echapper()`, `libelleCategorie()`, `compterParCategorie()`,
   `categorieExiste()`, `formaterPrix()`, `afficherCouverture()`, `dateDuJourEnFrancais()`,
-  `lireParametresCatalogue()`, `rechercherLivres()`, `trierLivres()`, `filtrerDisponibles()`,
-  `afficherFiltresActifs()`, `afficherEtatVide()`, `voisinsLivre()`…
+  `estOuverte()`, `lireParametresCatalogue()`, `rechercherLivres()`, `trierLivres()`,
+  `filtrerDisponibles()`, `afficherFiltresActifs()`, `afficherEtatVide()`, `voisinsLivre()`.
 
 ### Sécurité de base
 - Toutes les données affichées passent par `htmlspecialchars()` (via la fonction `echapper()`).
-- Les paramètres GET `categorie` et `id` sont contrôlés avant utilisation
-  (type, valeur vide, valeur inconnue). Une page d'erreur renvoie le code HTTP 404.
+- Tous les paramètres GET (`categorie`, `id`, `q`, `tri`, `dispo`) sont contrôlés avant
+  utilisation (type, valeur vide, valeur inconnue, longueur). Une catégorie ou un livre
+  introuvable affiche une page d'erreur avec le code HTTP 404.
 
 ### Présentation
 - Mise en page responsive (ordinateur, tablette, mobile) sans JavaScript.
 - Couvertures de livres générées en CSS, avec une couleur par catégorie
   (corps de titre réduit automatiquement pour les titres longs).
 
+## Dépôt Git
+
+Le code source est disponible sur GitHub :
+<https://github.com/ferdinandkoudoukpe-bot/mediatheque-mp1>
+
 ## Auteur
 
-Projet réalisé dans le cadre du TP1 de l'UE IT231 – Développement Web I,
-IPNET Institute of Technology.
+- **Étudiant :** KOUDOUKPE Kokou Frédéric
+- **Filière :** Licence DWM (Développement Web et Mobile)
+- **Établissement :** IPNET Institute of Technology, Lomé
+- **UE :** IT231 – Développement Web I (TP1)
+- **Chargé de cours :** M. EDOU Dodji
+- **Année académique :** 2026-2027
